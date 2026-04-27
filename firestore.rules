@@ -1,0 +1,144 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required) - The user's UID.
+    //   - email: string (required) - The user's email address.
+    //   - role: string (required) - The user's role (Lawyer, Judge, Court, Client).
+    //   - name: string (required) - The user's full name.
+    //   - lawyerId: string (optional) - For clients, the UID of their lawyer.
+    //
+    // Collection: cases
+    // Document ID: {caseId}
+    // Fields:
+    //   - id: string (required) - The case ID.
+    //   - title: string (required) - The case title.
+    //   - type: string (required) - The case type.
+    //   - court: string (required) - The court name.
+    //   - status: string (required) - The case status.
+    //   - nextHearing: string (optional) - The date of the next hearing.
+    //   - lawyerId: string (optional) - The lawyer's UID.
+    //   - judgeId: string (optional) - The judge's UID.
+    //   - clientId: string (optional) - The client's UID.
+    //   - complexity: string (optional) - The complexity level.
+    //   - keyArguments: list (optional) - Key legal arguments.
+    //
+    // Collection: hearings
+    // Document ID: {hearingId}
+    // Fields:
+    //   - id: string (required) - The hearing ID.
+    //   - caseId: string (required) - The case ID.
+    //   - date: string (required) - The date of the hearing.
+    //   - time: string (required) - The time of the hearing.
+    //   - type: string (required) - The type of hearing.
+    //   - court: string (required) - The court name.
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+          (request.auth.token.email == "varshasanjeevappa11@gmail.com" && request.auth.token.email_verified == true)
+        );
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'name']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
+             data.role in ['Lawyer', 'Judge', 'Court', 'Client', 'Builder'] &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100;
+    }
+
+    function isValidCase(data) {
+      return data.keys().hasAll(['id', 'title', 'type', 'court', 'status']) &&
+             data.id is string && data.id.size() > 0 &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.type is string &&
+             data.court is string &&
+             data.status is string;
+    }
+
+    function isValidHearing(data) {
+      return data.keys().hasAll(['id', 'caseId', 'date', 'time', 'type', 'court']) &&
+             data.id is string && data.id.size() > 0 &&
+             data.caseId is string && data.caseId.size() > 0 &&
+             data.date is string &&
+             data.time is string &&
+             data.type is string &&
+             data.court is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow read: if isAdmin();
+      allow read: if isAuthenticated() && hasRole('Lawyer') && resource.data.lawyerId == request.auth.uid;
+      
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) || hasRole('Lawyer') || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /login_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (request.resource.data.uid == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /cases/{caseId} {
+      allow read: if isAuthenticated() && (
+        resource.data.lawyerId == request.auth.uid ||
+        resource.data.judgeId == request.auth.uid ||
+        resource.data.clientId == request.auth.uid ||
+        hasRole('Court') ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && (hasRole('Lawyer') || hasRole('Court') || isAdmin()) && isValidCase(request.resource.data);
+      allow update: if isAuthenticated() && (
+        resource.data.lawyerId == request.auth.uid ||
+        resource.data.judgeId == request.auth.uid ||
+        hasRole('Court') ||
+        isAdmin()
+      ) && isValidCase(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /hearings/{hearingId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (hasRole('Lawyer') || hasRole('Court') || isAdmin()) && isValidHearing(request.resource.data);
+      allow update: if isAuthenticated() && (hasRole('Lawyer') || hasRole('Court') || isAdmin()) && isValidHearing(request.resource.data);
+      allow delete: if isAdmin();
+    }
+  }
+}

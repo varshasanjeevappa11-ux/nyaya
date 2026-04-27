@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a user of the platform (Lawyer, Judge, Court, or Client).",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique identifier for the user." },
+        "email": { "type": "string", "description": "The user's email address." },
+        "role": { "type": "string", "enum": ["Lawyer", "Judge", "Court", "Client"], "description": "The user's role." },
+        "name": { "type": "string", "description": "The user's full name." },
+        "lawyerId": { "type": "string", "description": "For clients, the UID of their lawyer." }
+      },
+      "required": ["uid", "email", "role", "name"]
+    },
+    "Case": {
+      "title": "Case",
+      "description": "Represents a legal case.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The case ID." },
+        "title": { "type": "string", "description": "The case title." },
+        "type": { "type": "string", "description": "The case type (Criminal, Civil, etc.)." },
+        "court": { "type": "string", "description": "The court where the case is being heard." },
+        "status": { "type": "string", "description": "The current status of the case." },
+        "nextHearing": { "type": "string", "description": "The date of the next hearing." },
+        "lawyerId": { "type": "string", "description": "The UID of the lawyer managing the case." },
+        "judgeId": { "type": "string", "description": "The UID of the judge assigned to the case." },
+        "clientId": { "type": "string", "description": "The UID of the client associated with the case." },
+        "complexity": { "type": "string", "description": "The complexity level of the case." },
+        "keyArguments": { "type": "array", "items": { "type": "string" }, "description": "Key legal arguments for the case." }
+      },
+      "required": ["id", "title", "type", "court", "status"]
+    },
+    "Hearing": {
+      "title": "Hearing",
+      "description": "Represents a scheduled court hearing.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The hearing ID." },
+        "caseId": { "type": "string", "description": "The ID of the associated case." },
+        "date": { "type": "string", "description": "The date of the hearing." },
+        "time": { "type": "string", "description": "The time of the hearing." },
+        "type": { "type": "string", "description": "The type of hearing." },
+        "court": { "type": "string", "description": "The court where the hearing is held." }
+      },
+      "required": ["id", "caseId", "date", "time", "type", "court"]
+    },
+    "LoginLog": {
+      "title": "LoginLog",
+      "description": "Represents a user's login session.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique identifier for the log entry." },
+        "uid": { "type": "string", "description": "The UID of the user who logged in." },
+        "email": { "type": "string", "description": "The email of the user." },
+        "role": { "type": "string", "description": "The role of the user." },
+        "loginTime": { "type": "string", "format": "date-time", "description": "The time the user logged in." },
+        "lastActive": { "type": "string", "format": "date-time", "description": "The last time the user was active." },
+        "duration": { "type": "number", "description": "The duration of the session in minutes." }
+      },
+      "required": ["id", "uid", "email", "role", "loginTime"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "User profile data." },
+    "/cases/{caseId}": { "schema": "Case", "description": "Case details." },
+    "/hearings/{hearingId}": { "schema": "Hearing", "description": "Hearing schedule." },
+    "/login_logs/{logId}": { "schema": "LoginLog", "description": "User login and session tracking logs." }
+  }
+}

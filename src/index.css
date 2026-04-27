@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg: #070D16;
+  --bg2: #0C1520;
+  --bg3: #111E2E;
+  --card: #0F1B2A;
+  --border: #1C2F45;
+  --gold: #C49428;
+  --gold-light: #E8B84B;
+  --text: #D8CDBA;
+  --text-muted: #6E8A9E;
+  --text-dim: #3A5060;
+  --success: #48BB78;
+  --warn: #ECC94B;
+  --info: #63B3ED;
+  --danger: #FC8181;
+  --purple: #B794F4;
+}
+
+.light {
+  --bg: #F8F9FA;
+  --bg2: #FFFFFF;
+  --bg3: #E9ECEF;
+  --card: #FFFFFF;
+  --border: #DEE2E6;
+  --gold: #A67C00;
+  --gold-light: #C49428;
+  --text: #212529;
+  --text-muted: #495057;
+  --text-dim: #ADB5BD;
+  --success: #28A745;
+  --warn: #FFC107;
+  --info: #17A2B8;
+  --danger: #DC3545;
+  --purple: #6F42C1;
+}
+
+@theme {
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Source Sans Pro", sans-serif;
+
+  --color-bg: var(--bg);
+  --color-bg2: var(--bg2);
+  --color-bg3: var(--bg3);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-dim: var(--text-dim);
+  --color-success: var(--success);
+  --color-warn: var(--warn);
+  --color-info: var(--info);
+  --color-danger: var(--danger);
+  --color-purple: var(--purple);
+
+  --animate-spin: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: "Source Sans Pro", sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Playfair Display", serif;
+}
